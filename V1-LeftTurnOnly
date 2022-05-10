@@ -1,0 +1,147 @@
+/*----------------------------------------------------------------------------*/
+/*                                                                            */
+/*    Module:       main.cpp                                                  */
+/*    Author:       C:\Users\157003327                                        */
+/*    Created:      Thu Apr 14 2022                                           */
+/*    Description:  V5 project                                                */
+/*                                                                            */
+/*----------------------------------------------------------------------------*/
+
+// ---- START VEXCODE CONFIGURED DEVICES ----
+// Robot Configuration:
+// [Name]               [Type]        [Port(s)]
+// Drivetrain           drivetrain    1, 10           
+// Vision20             vision        20              
+// ClawMotor            motor         3               
+// ArmMotor             motor         8               
+// RangeFinderC         sonar         C, D            
+// PotentiometerA       pot           A               
+// ---- END VEXCODE CONFIGURED DEVICES ----
+
+#include "vex.h"
+
+using namespace vex;
+
+event checkRed = event();
+event checkBlue = event();
+event checkGreen = event();
+
+// Signals that a red object was found
+bool visibleRedObject = false;
+// Signals that a green object was found
+bool visibleGreenObject = false;
+// Signals that a blue object was found
+bool visibleBlueObject = false;
+
+
+// Detects blue objects
+void hasBlueCallback() {
+  Brain.Screen.setFont(mono40);
+  Brain.Screen.clearLine(1, black);
+  Brain.Screen.setCursor(Brain.Screen.row(), 1);
+  Brain.Screen.setCursor(1, 1);
+  Vision20.takeSnapshot(Vision20__BLUEBOX);
+  if (Vision20.objectCount > 0) {
+    Brain.Screen.print("Blue Object Found");
+    visibleBlueObject = true;
+  } else {
+    Brain.Screen.print("No Blue Object");
+    visibleBlueObject = false;
+  }
+}
+
+// Detects red objects
+void hasRedCallback() {
+  Brain.Screen.setFont(mono40);
+  Brain.Screen.clearLine(3, black);
+  Brain.Screen.setCursor(Brain.Screen.row(), 1);
+  Brain.Screen.setCursor(3, 1);
+  Vision20.takeSnapshot(Vision20__REDBOX);
+  if (Vision20.objectCount > 0) {
+    Brain.Screen.print("Red Object Found");
+    visibleRedObject = true;
+  } else {
+    Brain.Screen.print("No Red Object");
+    visibleRedObject = false;
+  }
+}
+
+// Detects green objects
+void hasGreenCallback() {
+  Brain.Screen.setFont(mono40);
+  Brain.Screen.clearLine(5, black);
+  Brain.Screen.setCursor(Brain.Screen.row(), 1);
+  Brain.Screen.setCursor(5, 1);
+  Vision20.takeSnapshot(Vision20__GREENBOX);
+  if (Vision20.objectCount > 0) {
+    Brain.Screen.print("Green Object Found");
+    visibleGreenObject = true;
+  } else {
+    Brain.Screen.print("No Green Object");
+    visibleGreenObject = false;
+  }
+}
+
+
+
+int main() {
+  /*
+  // Initializing Robot Configuration. DO NOT REMOVE!
+  vexcodeInit();
+  int letsGo = 0;
+
+  // Keep Claw Open
+  ClawMotor.spinFor(reverse, 80, degrees);
+  checkBlue(hasBlueCallback);
+  checkRed(hasRedCallback);
+  checkGreen(hasGreenCallback);
+
+  while (true) {
+    if (visibleGreenObject == true) {
+      letsGo++;
+      wait(1, seconds);
+      break;
+    }
+    checkBlue.broadcastAndWait();
+    checkRed.broadcastAndWait();
+    checkGreen.broadcastAndWait();
+  }
+  
+  if (letsGo == 1) {
+    while (true) {
+      checkBlue.broadcastAndWait();
+      checkRed.broadcastAndWait();
+      checkGreen.broadcastAndWait();
+      if (Vision20.objects[0].centerX < 100) {
+        Drivetrain.turnFor(left, 2, degrees);
+      } else if (Vision20.objects[0].centerX > 220) {
+        Drivetrain.turnFor(right, 2, degrees);
+      }
+      else if (Vision20.objects[0].centerX > 150 && Vision20.objects[0].centerX < 240) {
+        if (Vision20.objects[0].width > 80) {
+        ClawMotor.spinFor(forward, 80, degrees);
+        letsGo++;
+        break;
+      } else {
+        Drivetrain.driveFor(forward, 50, mm);
+      }
+      }
+    }
+  }*/
+  checkRed(hasRedCallback);
+
+  while (true) {
+    checkRed.broadcastAndWait();
+    
+/*
+    if (RangeFinderC.distance(mm) < 500) {
+      wait(0.5, seconds);
+      Drivetrain.turnFor(left, 90, degrees);
+      wait(0.5, seconds);
+    }
+    if (RangeFinderC.distance(mm) < 500 == false) {
+      Drivetrain.driveFor(forward, 200, mm);
+    }*/
+  }
+  }
+
