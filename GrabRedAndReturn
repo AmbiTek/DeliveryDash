@@ -1,0 +1,205 @@
+/*----------------------------------------------------------------------------*/
+/*                                                                            */
+/*    Module:       main.cpp                                                  */
+/*    Author:       C:\Users\157003327                                        */
+/*    Created:      Thu Apr 14 2022                                           */
+/*    Description:  V5 project                                                */
+/*                                                                            */
+/*----------------------------------------------------------------------------*/
+
+// ---- START VEXCODE CONFIGURED DEVICES ----
+// Robot Configuration:
+// [Name]               [Type]        [Port(s)]
+// Drivetrain           drivetrain    1, 10           
+// Vision20             vision        20              
+// ClawMotor            motor         3               
+// ArmMotor             motor         8               
+// RangeFinderC         sonar         C, D            
+// PotentiometerA       pot           A               
+// ---- END VEXCODE CONFIGURED DEVICES ----
+
+
+/* After picking up a can find a wall and keep turning left until
+the robot sees our orange paper.
+*/
+
+#include "vex.h"
+
+using namespace vex;
+
+event checkRed = event();
+event checkBlue = event();
+event checkGreen = event();
+event checkPaper = event();
+
+// Signals that a red object was found
+bool visibleRedObject = false;
+// Signals that a green object was found
+bool visibleGreenObject = false;
+// Signals that a blue object was found
+bool visibleBlueObject = false;
+
+
+// Detects blue objects
+void hasBlueCallback() {
+  Brain.Screen.setFont(mono40);
+  Brain.Screen.clearLine(1, black);
+  Brain.Screen.setCursor(Brain.Screen.row(), 1);
+  Brain.Screen.setCursor(1, 1);
+  Vision20.takeSnapshot(Vision20__BLUEBOX);
+  if (Vision20.objectCount > 0) {
+    Brain.Screen.print("Blue Object Found");
+    visibleBlueObject = true;
+  } else {
+    Brain.Screen.print("No Blue Object");
+    visibleBlueObject = false;
+  }
+}
+
+// Detects red objects
+void hasRedCallback() {
+  Brain.Screen.setFont(mono40);
+  Brain.Screen.clearLine(3, black);
+  Brain.Screen.setCursor(Brain.Screen.row(), 1);
+  Brain.Screen.setCursor(3, 1);
+  Vision20.takeSnapshot(Vision20__REDBOX);
+  if (Vision20.objectCount > 0) {
+    Brain.Screen.print("Red Object Found");
+    visibleRedObject = true;
+  } else {
+    Brain.Screen.print("No Red Object");
+    visibleRedObject = false;
+  }
+}
+
+// Detects green objects
+void hasGreenCallback() {
+  Brain.Screen.setFont(mono40);
+  Brain.Screen.clearLine(5, black);
+  Brain.Screen.setCursor(Brain.Screen.row(), 1);
+  Brain.Screen.setCursor(5, 1);
+  Vision20.takeSnapshot(Vision20__GREENBOX);
+  if (Vision20.objectCount > 0) {
+    Brain.Screen.print("Green Object Found");
+    visibleGreenObject = true;
+  } else {
+    Brain.Screen.print("No Green Object");
+    visibleGreenObject = false;
+  }
+}
+
+void hasCoralCallback() {
+  Brain.Screen.setFont(mono40);
+  Brain.Screen.clearLine(1, black);
+  Brain.Screen.setCursor(Brain.Screen.row(), 1);
+  Brain.Screen.setCursor(1, 1);
+  Vision20.takeSnapshot(Vision20__CORAL);
+  if (Vision20.objectCount > 0) {
+    Brain.Screen.print("Paper Found");
+    visibleBlueObject = true;
+  } else {
+    Brain.Screen.print("No paper Object");
+    visibleBlueObject = false;
+  }
+}
+
+void alignWithCan() {
+  while (true) {
+    checkRed.broadcastAndWait();
+    if (Vision20.objects[0].centerX < 55) {
+        Drivetrain.turnFor(left, 2, degrees);
+      } else if (Vision20.objects[0].centerX > 175) {
+        Drivetrain.turnFor(right, 2, degrees);
+      }
+    if (Vision20.objects[0].centerX > 55 && Vision20.objects[0].centerX < 175) {
+        break;
+    } 
+  }
+}
+
+void goToCan() {
+  ClawMotor.spinFor(reverse, 180, degrees);
+  Drivetrain.driveFor(forward, RangeFinderC.distance(mm) - 150, mm);
+  wait(1, seconds);
+}
+
+void pickUp() {
+  ClawMotor.spinFor(forward, 107, degrees);
+  wait(0.5, seconds);
+  ArmMotor.spinFor(forward, 135, degrees);
+  wait(1, seconds);
+}
+
+void returnToDock() {
+  checkPaper(hasCoralCallback);
+  while (true) {
+    checkPaper.broadcastAndWait();
+    
+    if (RangeFinderC.distance(mm) < 500) {
+      wait(0.5, seconds);
+      Drivetrain.turnFor(left, 90, degrees);
+      if (RangeFinderC.distance(mm) < 500) {
+        Drivetrain.turnFor(right, 180, degrees);
+        wait(0.5, seconds);
+      }
+    }
+    if (Vision20.objectCount > 0) {
+      Drivetrain.driveFor(forward, RangeFinderC.distance(mm) - 400, mm);
+      break;
+    }
+    if (RangeFinderC.distance(mm) < 500 == false) {
+      Drivetrain.driveFor(forward, RangeFinderC.distance(mm) - 520, mm);
+    }
+  }
+  
+}
+
+int main() {
+  
+  // Initializing Robot Configuration. DO NOT REMOVE!
+  vexcodeInit();
+
+  // Set redcallback event
+  checkRed(hasRedCallback);
+
+  // Raise the arm to avoid blocking the rangefinder
+  ArmMotor.spinFor(forward, 60, degrees);
+  wait(2, seconds);
+  
+  while (true) {
+    /*
+    // Wall Detection
+    if (RangeFinderC.distance(mm) < 500) {
+      wait(0.5, seconds);
+      Drivetrain.turnFor(left, 90, degrees);
+      if (RangeFinderC.distance(mm) < 500) {
+        Drivetrain.turnFor(right, 180, degrees);
+        wait(0.5, seconds);
+      }
+    }
+    if (RangeFinderC.distance(mm) < 500 == false) {
+      Drivetrain.driveFor(forward, 200, mm);
+    }
+    // End of wall detection*/
+
+    // Returns whether a red object was found
+    checkRed.broadcastAndWait();
+
+    Drivetrain.turnFor(right, 10, degrees);
+    wait(0.1, seconds);
+
+    if (RangeFinderC.distance(mm) < 1000) {
+      wait(1, seconds);
+      if (visibleRedObject) {
+        break;
+      }
+    }
+    
+  }
+
+  alignWithCan();
+  goToCan();
+  pickUp();
+  returnToDock();
+
+}
